@@ -15,10 +15,16 @@ User = get_user_model()
 
 @shared_task
 def check_limits_task(user_id: int, raw_date: str) -> None:
+    """
+    Асинхронная задача для проверки превышения дневных и недельных лимитов пользователя.
+    :param user_id: ID пользователя
+    :param raw_date: дата транзакции (строка)
+    """
+    logger.info(f"Запуск проверки лимитов для пользователя {user_id} на дату {raw_date}")
     try:
         user = User.objects.get(id=user_id)
     except User.DoesNotExist:
-        logging.error(f"Пользователь с id={user_id} не найден для проверки лимитов")
+        logger.error(f"Пользователь с id={user_id} не найден для проверки лимитов")
         return
 
     date = parse_datetime(raw_date).date()
@@ -32,7 +38,7 @@ def check_limits_task(user_id: int, raw_date: str) -> None:
     daily_total = daily_expenses.aggregate(Sum("amount"))["amount__sum"] or 0
 
     if abs(daily_total) > user.daily_limit:
-        logging.warning(
+        logger.warning(
             f"Пользователь {user_id} превысил дневной лимит на {date}: {abs(daily_total)} > {user.daily_limit}"
         )
 
@@ -48,6 +54,7 @@ def check_limits_task(user_id: int, raw_date: str) -> None:
     weekly_total = weekly_expenses.aggregate(Sum("amount"))["amount__sum"] or 0
 
     if abs(weekly_total) > user.weekly_limit:
-        logging.warning(
+        logger.warning(
             f"Пользователь {user_id} превысил недельный лимит ({start_of_week} – {end_of_week}): {abs(weekly_total)} > {user.weekly_limit}"
         )
+    logger.info(f"Проверка лимитов для пользователя {user_id} завершена")

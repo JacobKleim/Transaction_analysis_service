@@ -5,6 +5,8 @@ User = get_user_model()
 
 
 class Transaction(models.Model):
+    """Модель транзакции."""
+
     class Category(models.TextChoices):
         FOOD = "Food", "Еда"
         TRANSPORT = "Transport", "Транспорт"
