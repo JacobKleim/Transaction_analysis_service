@@ -1,0 +1,63 @@
+services:
+  django:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./src:/opt/app/src
+      - ./sample_transactions.json:/opt/app/sample_transactions.json
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    restart: always
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: worker
+    command: poetry run celery -A project.celery worker --loglevel=info --pool=solo
+    volumes:
+      - ./src:/opt/app/src
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - django
+    restart: always
+
+  flower:
+    image: mher/flower
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - celery
+    restart: always
+
+  db:
+    image: postgres:16
+    container_name: db
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+
+volumes:
+  postgres_data:

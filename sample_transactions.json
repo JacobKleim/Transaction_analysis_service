@@ -1,0 +1,35 @@
+[
+    {
+        "id": "tx1001",
+        "user_id": 1,
+        "amount": -1000.00,
+        "currency": "RUB",
+        "category": "Transport",
+        "description": "Uber",
+        "timestamp": "2024-11-01T10:12:00"
+    },
+    {
+        "id": "tx1002",
+        "user_id": 1,
+        "amount": -2000.00,
+        "currency": "RUB",
+        "category": "Food",
+        "timestamp": "2024-11-01T13:30:00"
+    },
+    {
+        "id": "tx1003",
+        "user_id": 1,
+        "amount": -500.00,
+        "currency": "RUB",
+        "category": "Entertainment",
+        "timestamp": "2024-11-02T18:00:00"
+    },
+    {
+        "id": "tx1004",
+        "user_id": 1,
+        "amount": -250.00,
+        "currency": "RUB",
+        "description": "Netflix subscription",
+        "timestamp": "2024-11-02T18:20:00"
+    }
+]
