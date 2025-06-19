@@ -18,7 +18,9 @@ class Command(BaseCommand):
     help = "Импортирует транзакции из JSON-файла"
 
     def add_arguments(self, parser):
-        parser.add_argument("json_file", type=str, help="Путь к JSON-файлу с транзакциями")
+        parser.add_argument(
+            "json_file", type=str, help="Путь к JSON-файлу с транзакциями"
+        )
 
     def handle(self, *args, **kwargs):
         json_file = BASE_DIR / kwargs["json_file"]
@@ -31,13 +33,13 @@ class Command(BaseCommand):
             return
 
         count = 0
-        for entry in data:
+        for transaction in data:
             try:
-                validator = TransactionValidator(entry)
+                validator = TransactionValidator(transaction)
                 cleaned_data = validator.validate()
 
                 Transaction.objects.create(
-                    id=entry["id"],
+                    id=transaction["id"],
                     user=cleaned_data["user"],
                     amount=cleaned_data["amount"],
                     currency=cleaned_data["currency"],
@@ -45,13 +47,23 @@ class Command(BaseCommand):
                     description=cleaned_data["description"],
                     timestamp=cleaned_data["timestamp"],
                 )
-                check_limits_task.delay(entry["user_id"], entry["timestamp"])
+                check_limits_task.delay(
+                    transaction["user_id"], transaction["timestamp"]
+                )
                 count += 1
             except User.DoesNotExist:
-                self.stderr.write(self.style.WARNING(f"Пользователь с id={entry['user_id']} не найден"))
+                self.stderr.write(
+                    self.style.WARNING(
+                        f"Пользователь с id={transaction['user_id']} не найден"
+                    )
+                )
             except IntegrityError:
-                self.stderr.write(self.style.WARNING(f"Транзакция {entry['id']} уже существует"))
+                self.stderr.write(
+                    self.style.WARNING(f"Транзакция {transaction['id']} уже существует")
+                )
             except Exception as e:
-                self.stderr.write(self.style.ERROR(f"Ошибка при импорте {entry['id']}: {e}"))
+                self.stderr.write(
+                    self.style.ERROR(f"Ошибка при импорте {transaction['id']}: {e}")
+                )
 
         self.stdout.write(self.style.SUCCESS(f"Импортировано {count} транзакций"))
